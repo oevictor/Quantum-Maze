@@ -4,10 +4,11 @@
 
 #include <SFML/Graphics.hpp> // For graphics rendering
 #include <vector>            // For std::vector usage
+#pragma once    
 
 // Maze grid dimensions
 constexpr int GRID_WIDTH  = 30;  // Number of columns
-constexpr int GRID_HEIGHT = 20;  // Number of rows
+constexpr int GRID_HEIGHT = 30;  // Number of rows
 constexpr int NODE_SIZE   = 15;  // Pixel size of each cell
 
 // Direction indices for cell walls

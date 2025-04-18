@@ -1,38 +1,33 @@
-/******************************************************************************/
-/*  mazeHelper.cpp                                                             */
-/*                                                                            */
-/*  Helper utilities for generating, manipulating and rendering a 2‑D maze    */
-/*  with SFML.  The file complements `mazeHelper.h` by providing the concrete  */
-/*  implementations of the drawing routines, neighbour calculations and wall  */
-/*  manipulation helpers used by a depth‑first / Prim / Kruskal style maze    */
-/*  generator.                                                                 */
-/*                                                                            */
-/*  Coordinate system                                                         */
-/*  ------------------------------------------------------------------------  */
-/*      col →  (x)                                                             */
-/*      row ↓  (y)                                                             */
-/*                                                                            */
-/*      GRID_WIDTH   : number of columns (declared in mazeHelper.h)           */
-/*      GRID_HEIGHT  : number of rows     (declared in mazeHelper.h)          */
-/*      NODE_SIZE    : side length of a single cell in pixels                 */
-/*                                                                            */
-/*  Public types (declared in mazeHelper.h)                                   */
-/*  ------------------------------------------------------------------------  */
-/*      struct Node                                                           */
-/*      {                                                                     */
-/*          bool  walls[4];      // TOP, RIGHT, DOWN, LEFT                    */
-/*          ...                                                               */
-/*      };                                                                    */
-/*                                                                            */
-/*      struct Wall                                                           */
-/*      {                                                                     */
-/*          Node* a;               // first  node of an edge                  */
-/*          Node* b;               // second node of an edge                  */
-/*      };                                                                    */
-/*                                                                            */
-/*  Author: <your‑name>                                                       */
-/*  Date  : <yyyy‑mm‑dd>                                                      */
-/******************************************************************************/
+// /******************************************************************************/
+// /*  mazeHelper.cpp                                                             */
+// /*                                                                            */
+// /*  Helper utilities for generating, manipulating and rendering a 2‑D maze    */
+// /*  with SFML.  The file complements `mazeHelper.h` by providing the concrete  */
+// /*  implementations of the drawing routines, neighbour calculations and wall  */
+// /*  manipulation helpers used by a depth‑first / Prim / Kruskal style maze    */
+// /*  generator.                                                                 */
+// /*                                                                            */
+// /*  Coordinate system                                                         */
+// /*  ------------------------------------------------------------------------  */
+// /*      col →  (x)                                                             */
+// /*      row ↓  (y)                                                             */
+// /*                                                                            */
+// /*      GRID_WIDTH   : number of columns (declared in mazeHelper.h)           */
+// /*      GRID_HEIGHT  : number of rows     (declared in mazeHelper.h)          */
+// /*      NODE_SIZE    : side length of a single cell in pixels                 */
+// /*                                                                            */
+// /*  Public types (declared in mazeHelper.h)                                   */
+// /*  ------------------------------------------------------------------------  */
+// /*      struct Node                                                           */
+// /*      {                                                                     */
+// /*          bool  walls[4];      // TOP, RIGHT, DOWN, LEFT                    */
+// /*          ...                                                               */
+// /*      };                                                                    */
+// /*      struct Wall                                                           */
+// /*      {                                                                     */
+// /*          Node* a;                    first  node of an edge                  */
+// /*          Node* b;                   second node of an edge                  */                                            */
+// /******************************************************************************/
 
 #include <SFML/Graphics.hpp>
 #include <vector>
