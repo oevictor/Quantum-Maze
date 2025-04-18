@@ -41,11 +41,19 @@ struct ClassicalParticle
     sf::Vector2f acceleration; //!< Acceleration in pixels · s⁻².
     sf::Color    color = sf::Color::Green; //!< Fill colour (default: green).
 
+
+    //Putting somethig so it now where it can be or not 
+    int col=0, row=0; //position of the particle in the grid
+
+    /*void to determinaed if the particle is in the right position*/
+    void setPosition(int newCol, int newRow,Node nodeList[]); //Cecking to see where the particle is
+
     /**
      * @brief Integrate one time‑step.
      * @param dt  Elapsed time in **seconds**.
      */
-    void update(float dt);
+    // void update(float dt);
+    void update (float dt, Node nodeList[]); //update the position of the particle
 
     /**
      * @brief Draw the particle on the provided SFML render target.

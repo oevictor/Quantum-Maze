@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <stack>
@@ -77,14 +78,19 @@ int main()
     // initialize frontier walls
     std::vector<Wall> wallVec;
     addWalls(wallVec, nodeList, cur_col, cur_row);
+    bool mazeReady = false;// just to check if the maze is ready
+
     // ---------------------------------------------------------------------
     // Particle instantiation
     // ---------------------------------------------------------------------
     ClassicalParticle classical{
         sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-        sf::Vector2f(5.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
         sf::Vector2f(0.f, 0.f)    // acceleration
     };
+
+    // // Place it at the randomly chosen start cell (cur_col, cur_row):
+    // classical.setPosition(cur_col, cur_row, nodeList);
 
     QuantumParticle quantum;
     quantum.initialize();
@@ -110,15 +116,17 @@ int main()
               if (key->code == sf::Keyboard::Key::Space)
               {
                   autoCollapse = !autoCollapse;
-                  std::cout << "Auto‑collapse: "
-                            << (autoCollapse ? "ON" : "OFF") << '\n';
+                //   std::cout << "Auto‑collapse: "
+                //             << (autoCollapse ? "ON" : "OFF") << '\n';
               }
           }
+
         }
 
 
         
         //--——————————————————————————————— the maze
+
         if (!wallVec.empty()) {
             int idx = std::rand() % wallVec.size();
             Wall w = wallVec[idx];
@@ -136,14 +144,53 @@ int main()
                 addWalls(wallVec, nodeList, cur_col, cur_row);
             }
 
+            // // Suppose newCol/newRow is your target cell:
+            // classical.setPosition(cur_col, cur_row, nodeList);
+
+
             wallVec.erase(wallVec.begin() + idx);
+        }
+        else if (!mazeReady) {
+            // Maze generation is complete
+            mazeReady = true;
+            std::cout << "Maze generation complete.\n";
+            classical.setPosition(cur_col, cur_row, nodeList);
         }
 
 
+        // Place it at the randomly chosen start cell (cur_col, cur_row):
+        // classical.setPosition(cur_col, cur_row, nodeList);
+        // Suppose newCol/newRow is your target cell:
+        // classical.setPosition(cur_col, cur_row, nodeList);
 
         // ——— Simulation update ———————————————————————————————
         float dt = clock.restart().asSeconds();        // frame time in seconds
-        classical.update(dt);
+        // classical.update(dt);
+        if(mazeReady)
+        {
+            // at the top of your loop, before classical.update(dt,nodeList):
+            const float speed = 100.f;  // pixels per second
+
+            sf::Vector2f dir{0.f, 0.f};
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dir.y -= 1.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) dir.y += 1.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) dir.x -= 1.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) dir.x += 1.f;
+
+            // normalize so diagonal isn’t faster:
+            if (dir.x != 0.f || dir.y != 0.f) {
+                float len = std::sqrt(dir.x*dir.x + dir.y*dir.y);
+                dir /= len;
+            }
+            classical.velocity = dir * speed;
+
+            // now integrate & collide:
+            classical.update(dt, nodeList);
+
+            // classical.update(dt);
+            // classical.update(dt, nodeList); // update the position of the particle
+            // classical.setPosition(cur_col, cur_row, nodeList);
+        }
 
         // if (!quantum.collapsed)
         //     quantum.evolve(nodeList);
@@ -169,8 +216,18 @@ int main()
         // ——— Rendering ———————————————————————————————————————
         window.clear(sf::Color::Black);
         drawMaze(window, nodeList, -1, -1); // -1 disables path highlighting
-        classical.draw(window);
-        quantum.draw(window);
+        
+        if(mazeReady){
+            classical.draw(window);
+            quantum.draw(window);
+        }
+        
+        
+        
+        // classical.draw(window);
+        // quantum.draw(window);
+        
+        
         window.display();
         // music.setLoop(true);  
         // music.play();
