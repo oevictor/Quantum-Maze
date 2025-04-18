@@ -17,6 +17,7 @@
 // ============================================================================
 
 #include <iostream>
+#include <filesystem>
 #include <vector>
 #include <cmath>
 #include <cstdlib>
@@ -48,14 +49,18 @@ int main()
         "Labyrinth: Classical vs Quantum");
    
         
-    window.setSize({640, 480});
+    // window.setSize({640, 480});
+    window.setSize({720, 480});
+    window.setVerticalSyncEnabled(true); // enable VSync
     // Load a music to play
-    sf::Music music;      
+    
+
+    sf::Music music;
     if (!music.openFromFile("music/Elmshore - Justin Bell.mp3")){
         std::cerr << "Failed to load music\n";
     }
 
-    music.play();
+    // music.play(); to ounvido cartola agr
     auto desktopMode = sf::VideoMode::getDesktopMode();
     sf::Vector2u desktopSize = desktopMode.size;  
     sf::Vector2u winSize = window.getSize();
@@ -74,6 +79,11 @@ int main()
     int cur_col = std::rand() % GRID_WIDTH;
     int cur_row = std::rand() % GRID_HEIGHT;
     nodeList[cur_col + cur_row * GRID_WIDTH].visited = true;
+    // void drawFinish(sf::RenderWindow& window, int col, int row);
+    // make it random the finish line
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    FINISH_COL = std::rand() % GRID_WIDTH;
+    FINISH_ROW = std::rand() % GRID_HEIGHT;
 
     // initialize frontier walls
     std::vector<Wall> wallVec;
@@ -87,6 +97,39 @@ int main()
         sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
         sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
         sf::Vector2f(0.f, 0.f)    // acceleration
+    };
+
+    ClassicalParticle classical2{
+        sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
+        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+        sf::Vector2f(0.f, 0.f)    // acceleration
+    };
+
+    ClassicalParticle classical3{
+        sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
+        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+        sf::Vector2f(0.f, 0.f)    // acceleration
+    };
+
+    ClassicalParticle classical4{
+        sf::Vector2f(-5.f, -5.f),   // initial position (top‑left corner)
+        sf::Vector2f(40.f, 10.f),   //(x,y) velocity (5 px/s to the right)
+        sf::Vector2f(1.f, 0.f)    // acceleration
+
+    };
+
+
+
+    classical.color = sf::Color::Green; // default colour
+    classical2.color = sf::Color::Red; // default colour
+    classical3.color = sf::Color::Blue; // default colour
+    classical4.color = sf::Color::Yellow; // default colour
+
+    // building a bot vector
+    std::vector<ClassicalParticle*> bots={
+        &classical2,
+        &classical3,
+        &classical4
     };
 
     // // Place it at the randomly chosen start cell (cur_col, cur_row):
@@ -123,8 +166,6 @@ int main()
 
         }
 
-
-        
         //--——————————————————————————————— the maze
 
         if (!wallVec.empty()) {
@@ -142,6 +183,10 @@ int main()
                 cur_row = ni / GRID_WIDTH;
                 cur_col = ni % GRID_WIDTH;
                 addWalls(wallVec, nodeList, cur_col, cur_row);
+                //adding the finishi line
+                // drawFinish(window, FINISH_COL, FINISH_ROW);
+
+
             }
 
             // // Suppose newCol/newRow is your target cell:
@@ -155,21 +200,18 @@ int main()
             mazeReady = true;
             std::cout << "Maze generation complete.\n";
             classical.setPosition(cur_col, cur_row, nodeList);
+            drawFinish(window, FINISH_COL, FINISH_ROW);
         }
 
 
-        // Place it at the randomly chosen start cell (cur_col, cur_row):
-        // classical.setPosition(cur_col, cur_row, nodeList);
-        // Suppose newCol/newRow is your target cell:
-        // classical.setPosition(cur_col, cur_row, nodeList);
-
+ 
         // ——— Simulation update ———————————————————————————————
         float dt = clock.restart().asSeconds();        // frame time in seconds
         // classical.update(dt);
         if(mazeReady)
         {
             // at the top of your loop, before classical.update(dt,nodeList):
-            const float speed = 100.f;  // pixels per second
+            const float speed = 5.f;  // pixels per second
 
             sf::Vector2f dir{0.f, 0.f};
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dir.y -= 1.f;
@@ -186,23 +228,30 @@ int main()
 
             // now integrate & collide:
             classical.update(dt, nodeList);
+            classical2.update(dt, nodeList);
+            classical3.update(dt, nodeList);
+            classical4.update(dt, nodeList);
 
-            // classical.update(dt);
-            // classical.update(dt, nodeList); // update the position of the particle
-            // classical.setPosition(cur_col, cur_row, nodeList);
+            // after you move the player:
+            if (cur_col == FINISH_COL && cur_row == FINISH_ROW) {
+                // player reached finish → you win
+                std::cout << "YOU WIN!\n";
+                window.close();   // or set gameState = WON
+            }
+
+            // after you update your bots:
+            for (auto& bot : bots) {
+                if (bot->col == FINISH_COL && bot->row == FINISH_ROW) {
+                    // a bot got there first → you lose
+                    std::cout << "YOU LOSE!\n";
+                    window.close(); // or gameState = LOST
+                }
+            }
+
+ 
         }
 
-        // if (!quantum.collapsed)
-        //     quantum.evolve(nodeList);
 
-        // // Collapse quantum particle when SPACE is pressed
-        // if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) &&
-        //     !quantum.collapsed)
-        // {   
-        //     quantum.evolve(nodeList);
-        //     quantum.collapse();
-        // }
-        //trying to make it stops colaps only when the space key is pressed
         if (autoCollapse)
         {
             // prepare the next frame
@@ -219,19 +268,16 @@ int main()
         
         if(mazeReady){
             classical.draw(window);
+            classical2.draw(window);
+            classical3.draw(window);
+            classical4.draw(window);
+
+
             quantum.draw(window);
         }
         
-        
-        
-        // classical.draw(window);
-        // quantum.draw(window);
-        
-        
+
         window.display();
-        // music.setLoop(true);  
-        // music.play();
-    
 
     }
     return 0;

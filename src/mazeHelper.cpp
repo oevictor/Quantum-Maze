@@ -32,7 +32,36 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "mazeHelper.h"
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
 
+// int FINISH_COL; // finish line column
+// int FINISH_ROW; // finish line row
+int FINISH_COL = GRID_WIDTH - 1;
+int FINISH_ROW = GRID_HEIGHT - 1;
+
+
+
+//adding a finish line to the maze
+void drawFinish(sf::RenderWindow& window, int col, int row) {  
+    // sf::RectangleShape square(sf::Vector2f(NODE_SIZE, NODE_SIZE));  
+    sf::RectangleShape square(sf::Vector2f(
+        static_cast<float>(NODE_SIZE),
+        static_cast<float>(NODE_SIZE)
+    ));
+    // square.setPosition(col * NODE_SIZE, row * NODE_SIZE);  
+    square.setPosition(sf::Vector2f(
+        static_cast<float>(col * NODE_SIZE),
+        static_cast<float>(row * NODE_SIZE)
+
+    ));
+    // square.setFillColor(sf::Color(50,200,50,150));    // translucent green  
+    square.setOutlineColor(sf::Color::Red);  
+    square.setOutlineThickness(2.f);  
+    window.draw(square);  
+    std::cout << "Finish line drawn at (" << col << ", " << row << ")\n";
+}
 /* ------------------------------------------------------------------------- */
 /* addWalls                                                                  */
 /* ------------------------------------------------------------------------- */

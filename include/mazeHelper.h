@@ -11,6 +11,13 @@ constexpr int GRID_WIDTH  = 30;  // Number of columns
 constexpr int GRID_HEIGHT = 30;  // Number of rows
 constexpr int NODE_SIZE   = 15;  // Pixel size of each cell
 
+//add a finish line to the maze
+// extern int FINISH_COL=GRID_WIDTH-1; // Finish line column
+// extern int FINISH_ROW=GRID_HEIGHT-1; // Finish line row
+
+extern int FINISH_COL; // Finish line column
+extern int FINISH_ROW; // Finish line row
+
 // Direction indices for cell walls
 enum {
     SIDE_RIGHT = 0, // Right wall
@@ -23,6 +30,7 @@ enum {
 struct Node {
     bool walls[4] = { true, true, true, true }; // Walls [right, bottom, left, top]
     bool visited  = false; // Visitation flag for maze generation
+    // bool isFinished = false; //Implementated a finisih line to stps the "race" 
 };
 
 /// Represents a wall between two adjacent cells
@@ -31,6 +39,11 @@ struct Wall {
     Node* node2; // Second adjacent cell
 };
 
+/// Draws the finish line at the specified cell
+/// @param window SFML render window
+/// @param col Column of the finish line
+/// @param row Row of the finish line
+void drawFinish(sf::RenderWindow& window, int col, int row);
 /// Adds walls of a specific cell to the wall list
 /// @param wallVec Target vector to store walls
 /// @param nodeList Array of all grid cells
