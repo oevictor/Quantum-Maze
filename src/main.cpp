@@ -25,6 +25,7 @@
 #include "mazeHelper.h"              // grid constants, Node, drawMaze()
 #include <SFML/Graphics.hpp>
 #include "../include/particle.hpp"   // ClassicalParticle, QuantumParticle
+#include <SFML/Audio.hpp>  //audio
 
 /**
  * @brief Program entry point.
@@ -47,7 +48,13 @@ int main()
    
         
     window.setSize({640, 480});
+    // Load a music to play
+    sf::Music music;      
+    if (!music.openFromFile("music/Elmshore - Justin Bell.mp3")){
+        std::cerr << "Failed to load music\n";
+    }
 
+    music.play();
     auto desktopMode = sf::VideoMode::getDesktopMode();
     sf::Vector2u desktopSize = desktopMode.size;  
     sf::Vector2u winSize = window.getSize();
@@ -81,7 +88,8 @@ int main()
 
     QuantumParticle quantum;
     quantum.initialize();
-
+    //seting the collapese to make it stops only when the space key is pressed
+    bool autoCollapse = true;
     sf::Clock clock; // used to compute per‑frame Δt
 
     // ---------------------------------------------------------------------
@@ -95,7 +103,21 @@ int main()
             if (event->is<sf::Event::Closed>())        // window close request
                 window.close();
             // (add other event types here as needed)
+
+          // toggle behaviour when SPACE *goes down* (no key repeat)
+          if (auto key = event->getIf<sf::Event::KeyPressed>())
+          {
+              if (key->code == sf::Keyboard::Key::Space)
+              {
+                  autoCollapse = !autoCollapse;
+                  std::cout << "Auto‑collapse: "
+                            << (autoCollapse ? "ON" : "OFF") << '\n';
+              }
+          }
         }
+
+
+        
         //--——————————————————————————————— the maze
         if (!wallVec.empty()) {
             int idx = std::rand() % wallVec.size();
@@ -123,15 +145,25 @@ int main()
         float dt = clock.restart().asSeconds();        // frame time in seconds
         classical.update(dt);
 
-  
-        if (!quantum.collapsed)
-            quantum.evolve(nodeList);
+        // if (!quantum.collapsed)
+        //     quantum.evolve(nodeList);
 
-        // Collapse quantum particle when SPACE is pressed
-        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) &&
-            !quantum.collapsed)
+        // // Collapse quantum particle when SPACE is pressed
+        // if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) &&
+        //     !quantum.collapsed)
+        // {   
+        //     quantum.evolve(nodeList);
+        //     quantum.collapse();
+        // }
+        //trying to make it stops colaps only when the space key is pressed
+        if (autoCollapse)
         {
-            quantum.collapse();
+            // prepare the next frame
+            if (quantum.collapsed)                     // was frozen last frame
+                quantum.collapsed = false;             // “un‑collapse” so it can walk
+    
+            quantum.evolve(nodeList);                 // quantum walk
+            quantum.collapse();                       // immediate measurement
         }
 
         // ——— Rendering ———————————————————————————————————————
@@ -140,7 +172,10 @@ int main()
         classical.draw(window);
         quantum.draw(window);
         window.display();
-    }
+        // music.setLoop(true);  
+        // music.play();
+    
 
+    }
     return 0;
 }

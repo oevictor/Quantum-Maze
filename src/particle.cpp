@@ -58,24 +58,36 @@ void ClassicalParticle::draw(sf::RenderWindow& window) const
 /**
  * @brief Resets the probability array to a uniform distribution.
  */
-void QuantumParticle::initialize()
+void QuantumParticle::initialize() //the probability array is initialized to a uniform distribution
 {
     float uniform = 1.0f / (GRID_WIDTH * GRID_HEIGHT);
-    for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; ++i)
+    for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; ++i){
         probability[i] = uniform;
+    }
+        // std::cout << "Quantum particle initialized with uniform distribution.\n";
 }
 
+
 /**
- * @brief Performs one step of the discrete quantum walk.
+ * @brief Advances the quantum particle's wavefunction using a discrete quantum walk.
  *
- * Probability mass in each cell flows equally to all neighbouring cells that
- * are reachable (i.e., the corresponding wall is open).
+ * This method simulates one step of evolution for the particle's probability distribution
+ * in a maze represented by a grid of `Node` objects. Each cell with non-zero probability
+ * distributes its probability mass equally to all reachable neighboring cells (i.e., those
+ * without a wall in between).
  *
- * @param nodeList Flat array of Node elements representing the maze grid.
+ * The result is a new probability field that replaces the current one.
+ *
+ * @param nodeList A flat array of `Node` objects representing the maze grid.
+ *                 Each node contains wall information that determines valid paths
+ *                 for the quantum walk.
  */
-void QuantumParticle::evolve(Node nodeList[])
+
+void QuantumParticle::evolve(Node nodeList[]) 
+/*the probability mass in each cell flows equally to all
+neighbouring cells that are reachable (i.e., the corresponding wall is open)*/
 {
-    float next[GRID_WIDTH * GRID_HEIGHT] = {0.0f};
+    float next[GRID_WIDTH * GRID_HEIGHT] = {0.0f}; // next probability field
 
     for (int r = 0; r < GRID_HEIGHT; ++r)
     {
@@ -122,15 +134,24 @@ void QuantumParticle::evolve(Node nodeList[])
  */
 void QuantumParticle::collapse()
 {
+    // Step 1: Generate a random number in the range [0, 1)
     float r = static_cast<float>(rand()) / RAND_MAX;
+
+    // Step 2: Iterate through the probability field, accumulating probability
     float sum = 0.0f;
     for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; ++i)
     {
         sum += probability[i];
+
+        // Step 3: Collapse the wavefunction at the first index where the cumulative
+        // probability exceeds the random number r
         if (r < sum)
         {
+            // Compute the corresponding cell coordinates (col, row)
             col = i % GRID_WIDTH;
             row = i / GRID_WIDTH;
+
+            // Mark the particle as collapsed
             collapsed = true;
             break;
         }
@@ -148,30 +169,44 @@ void QuantumParticle::collapse()
  */
 void QuantumParticle::draw(sf::RenderWindow& window) const
 {
+    // Case 1: Particle has not yet collapsed
     if (!collapsed)
     {
+        // Iterate over every cell in the grid
         for (int r = 0; r < GRID_HEIGHT; ++r)
         {
             for (int c = 0; c < GRID_WIDTH; ++c)
             {
+                // Get the probability at this cell
                 float p = probability[c + r * GRID_WIDTH];
+
+                // Only draw if probability is noticeable
                 if (p > 0.01f)
                 {
+                    // Create a translucent magenta circle, size proportional to p
                     sf::CircleShape blob(NODE_SIZE * p * 1.5f);
-                    blob.setFillColor(sf::Color(255, 0, 255, static_cast<int>(255 * p)));
+                    // blob.setFillColor(sf::Color(255, 0, 255, static_cast<int>(255 * p)));
+                    blob.setFillColor(sf::Color::Blue);
+                    // Position it centered in the cell
                     blob.setPosition(sf::Vector2f(c * NODE_SIZE, r * NODE_SIZE));
+                    
+                    // Render the blob to the window
                     window.draw(blob);
                 }
             }
         }
     }
-    else // collapsed state
-    {   
-        // std::cout << "Collapsed at: (" << col << ", " << row << ")\n";
+    else // Case 2: Particle has collapsed to a definite position
+    {
+        // Create a solid magenta circle representing the particle
         sf::CircleShape qblob(NODE_SIZE * 0.3f);
         qblob.setFillColor(color);
+
+        // Offset position slightly to center it in the cell
         qblob.setPosition(sf::Vector2f(col * NODE_SIZE + NODE_SIZE * 0.2f,
                                        row * NODE_SIZE + NODE_SIZE * 0.2f));
+        
+        // Render the particle to the window
         window.draw(qblob);
     }
 }
