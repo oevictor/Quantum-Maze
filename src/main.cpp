@@ -24,10 +24,12 @@
 #include <ctime>
 #include <stack>
 #include <time.h>
-#include "mazeHelper.h"              // grid constants, Node, drawMaze()
+#include "../include/mazeHelper.hpp"              // grid constants, Node, drawMaze()
 #include <SFML/Graphics.hpp>
 #include "../include/particle.hpp"   // ClassicalParticle, QuantumParticle
 #include <SFML/Audio.hpp>  //audio
+#include "../include/gamesettings.hpp" // Game settings header
+
 
 /**
  * @brief Program entry point.
@@ -78,21 +80,32 @@ int main()
     // pick a random starting cell
     int cur_col = std::rand() % GRID_WIDTH;
     int cur_row = std::rand() % GRID_HEIGHT;
+
     nodeList[cur_col + cur_row * GRID_WIDTH].visited = true;
     // void drawFinish(sf::RenderWindow& window, int col, int row);
+    
     // make it random the finish line
     std::srand(static_cast<unsigned>(std::time(nullptr)));
-    FINISH_COL = std::rand() % GRID_WIDTH;
-    FINISH_ROW = std::rand() % GRID_HEIGHT;
+    // FINISH_COL = std::rand() % GRID_WIDTH;
+    // FINISH_ROW = std::rand() % GRID_HEIGHT;
+    FINISH_COL = 5;
+    FINISH_ROW = 5;
 
     // initialize frontier walls
     std::vector<Wall> wallVec;
     addWalls(wallVec, nodeList, cur_col, cur_row);
     bool mazeReady = false;// just to check if the maze is ready
 
+    //bolean to make a pase buttum
+    bool pause = false;
+    //restar function
+
     // ---------------------------------------------------------------------
     // Particle instantiation
     // ---------------------------------------------------------------------
+
+    // ClassicalParticle classical;
+
     ClassicalParticle classical{
         sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
         sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
@@ -120,13 +133,14 @@ int main()
 
 
 
-    classical.color = sf::Color::Green; // default colour
+    classical.color = sf::Color::Black; // default colour
     classical2.color = sf::Color::Red; // default colour
     classical3.color = sf::Color::Blue; // default colour
     classical4.color = sf::Color::Yellow; // default colour
 
     // building a bot vector
     std::vector<ClassicalParticle*> bots={
+        &classical,
         &classical2,
         &classical3,
         &classical4
@@ -141,6 +155,15 @@ int main()
     bool autoCollapse = true;
     sf::Clock clock; // used to compute per‑frame Δt
 
+    //PlayerParticle player;
+    PlayerParticle player{
+        sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
+        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+        sf::Vector2f(0.f, 0.f)    // acceleration
+    };
+    player.color = sf::Color::Green; // default colour
+
+
     // ---------------------------------------------------------------------
     // Main loop
     // ---------------------------------------------------------------------
@@ -151,7 +174,27 @@ int main()
         {
             if (event->is<sf::Event::Closed>())        // window close request
                 window.close();
-            // (add other event types here as needed)
+            //events must be here
+
+            if(auto key = event->getIf<sf::Event::KeyPressed>()){
+                if(key->code == sf::Keyboard::Key::P){
+                    pause = !pause;
+                    if(pause){
+                        std::cout << "Pause: ON\n";
+                    }else{
+                        std::cout << "Pause: OFF\n";
+                    }
+                }
+            }
+            if (auto key = event->getIf<sf::Event::KeyPressed>()) {
+                if (key->code == sf::Keyboard::Key::R) { // Reset game with 'R'
+                    resetGame(nodeList, wallVec, player, bots, mazeReady, cur_col, cur_row);
+                }
+            }
+
+            
+            
+            // }
 
           // toggle behaviour when SPACE *goes down* (no key repeat)
           if (auto key = event->getIf<sf::Event::KeyPressed>())
@@ -200,73 +243,109 @@ int main()
             mazeReady = true;
             std::cout << "Maze generation complete.\n";
             classical.setPosition(cur_col, cur_row, nodeList);
-            drawFinish(window, FINISH_COL, FINISH_ROW);
+            // drawFinish(window, FINISH_COL, FINISH_ROW);
         }
 
 
+
+        //put the pause
+        if(!pause){
  
-        // ——— Simulation update ———————————————————————————————
-        float dt = clock.restart().asSeconds();        // frame time in seconds
-        // classical.update(dt);
-        if(mazeReady)
-        {
-            // at the top of your loop, before classical.update(dt,nodeList):
-            const float speed = 5.f;  // pixels per second
+            // ——— Simulation update ———————————————————————————————
+            float dt = clock.restart().asSeconds();        // frame time in seconds
 
-            sf::Vector2f dir{0.f, 0.f};
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dir.y -= 1.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) dir.y += 1.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) dir.x -= 1.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) dir.x += 1.f;
 
-            // normalize so diagonal isn’t faster:
-            if (dir.x != 0.f || dir.y != 0.f) {
-                float len = std::sqrt(dir.x*dir.x + dir.y*dir.y);
-                dir /= len;
-            }
-            classical.velocity = dir * speed;
+            if(mazeReady)
+            {
 
-            // now integrate & collide:
-            classical.update(dt, nodeList);
-            classical2.update(dt, nodeList);
-            classical3.update(dt, nodeList);
-            classical4.update(dt, nodeList);
+                const float speed = 50.f;  // pixels per second
 
-            // after you move the player:
-            if (cur_col == FINISH_COL && cur_row == FINISH_ROW) {
-                // player reached finish → you win
-                std::cout << "YOU WIN!\n";
-                window.close();   // or set gameState = WON
-            }
+                sf::Vector2f dir{0.f, 0.f};
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dir.y -= 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) dir.y += 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) dir.x -= 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) dir.x += 1.f;
 
-            // after you update your bots:
-            for (auto& bot : bots) {
-                if (bot->col == FINISH_COL && bot->row == FINISH_ROW) {
-                    // a bot got there first → you lose
-                    std::cout << "YOU LOSE!\n";
-                    window.close(); // or gameState = LOST
+                // normalize so diagonal isn’t faster:
+                if (dir.x != 0.f || dir.y != 0.f) {
+                    float len = std::sqrt(dir.x*dir.x + dir.y*dir.y);
+                    dir /= len;
                 }
+
+                // set the player velocity:
+                player.velocity = dir * speed;
+
+                // now integrate & collide:
+                player.update(dt, nodeList);
+                classical.update(dt, nodeList); //s I must imporve the bots
+                classical2.update(dt, nodeList);
+                classical3.update(dt, nodeList);
+                classical4.update(dt, nodeList);
+                
+                //trying to set the postion so the particle is in the right place and computs
+                player.col = static_cast<int>(player.position.x / NODE_SIZE);
+                player.row = static_cast<int>(player.position.y / NODE_SIZE);
+                
+                player.setPosition(player.col, player.row, nodeList);
+
+                //It was only a debuggber,now I need to put some pause butum
+                // std::cout << "Player particle position: (" << player.col << ", " << player.row << ")\n";
+
+                if (player.col == FINISH_COL && player.row == FINISH_ROW) {
+                    // player reached finish → you win
+
+                    //changinf for another window saying you win
+                    sf::RenderWindow win(sf::VideoMode({400, 200}), "You Win!");
+                    std::cout << "YOU WIN!\n";
+                    // window.close();  
+                }
+
+                bots[0]->col = static_cast<int>(classical.position.x / NODE_SIZE);
+                bots[0]->row = static_cast<int>(classical.position.y / NODE_SIZE);
+                bots[1]->col = static_cast<int>(classical2.position.x / NODE_SIZE);
+                bots[1]->row = static_cast<int>(classical2.position.y / NODE_SIZE);
+                bots[2]->col = static_cast<int>(classical3.position.x / NODE_SIZE);
+                bots[2]->row = static_cast<int>(classical3.position.y / NODE_SIZE);
+                bots[3]->col = static_cast<int>(classical4.position.x / NODE_SIZE);
+                bots[3]->row = static_cast<int>(classical4.position.y / NODE_SIZE);
+                // std::cout << "Bot particle position: (" << bots[0]->col << ", " << bots[0]->row << ")\n";
+
+                // after you update your bots:
+                for (auto& bot : bots) {
+                    if (bot->col == FINISH_COL && bot->row == FINISH_ROW) {
+                        // a bot got there first → you lose
+                        sf::RenderWindow win(sf::VideoMode({400, 200}), "You lose!");
+
+                        std::cout << "YOU LOSE!\n";
+
+                        // window.close();
+                    }
+                }
+
+
             }
 
- 
+
+            if (autoCollapse)
+            {
+                // prepare the next frame
+                if (quantum.collapsed)                     // was frozen last frame
+                    quantum.collapsed = false;             // “un‑collapse” so it can walk
+        
+                quantum.evolve(nodeList);                 // quantum walk
+                quantum.collapse();                       // immediate measurement
+            }
         }
-
-
-        if (autoCollapse)
-        {
-            // prepare the next frame
-            if (quantum.collapsed)                     // was frozen last frame
-                quantum.collapsed = false;             // “un‑collapse” so it can walk
-    
-            quantum.evolve(nodeList);                 // quantum walk
-            quantum.collapse();                       // immediate measurement
-        }
-
         // ——— Rendering ———————————————————————————————————————
         window.clear(sf::Color::Black);
-        drawMaze(window, nodeList, -1, -1); // -1 disables path highlighting
+        drawMaze(window, nodeList, 1, 1); // -1 disables path highlighting
         
         if(mazeReady){
+
+            drawFinish(window, FINISH_COL, FINISH_ROW);
+            
+            
+            player.draw(window);
             classical.draw(window);
             classical2.draw(window);
             classical3.draw(window);
@@ -275,6 +354,7 @@ int main()
 
             quantum.draw(window);
         }
+        
         
 
         window.display();

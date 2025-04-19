@@ -31,7 +31,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "mazeHelper.h"
+#include "mazeHelper.hpp"
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -45,11 +45,32 @@ int FINISH_ROW = GRID_HEIGHT - 1;
 
 //adding a finish line to the maze
 void drawFinish(sf::RenderWindow& window, int col, int row) {  
+
+
+
     // sf::RectangleShape square(sf::Vector2f(NODE_SIZE, NODE_SIZE));  
     sf::RectangleShape square(sf::Vector2f(
         static_cast<float>(NODE_SIZE),
         static_cast<float>(NODE_SIZE)
     ));
+
+    // trying to put a imagem in the finish line
+    sf::Texture texture;
+    if (!texture.loadFromFile("imagen/finish_line.png")) {
+        std::cerr << "Error loading texture\n";
+        return;
+    }
+    sf::Sprite sprite(texture);
+
+    sprite.setPosition(sf::Vector2f(
+        static_cast<float>(col * NODE_SIZE),
+        static_cast<float>(row * NODE_SIZE)
+    ));
+    sprite.setScale({0.05f, 0.025f}); // Adjust the scale as needed
+    // sprite.scale({1.5f, 3.f}); // factor relative to the current scale
+    
+
+    // sf::RectangleShape square(sf::Vector2f(500.f,100.f));
     // square.setPosition(col * NODE_SIZE, row * NODE_SIZE);  
     square.setPosition(sf::Vector2f(
         static_cast<float>(col * NODE_SIZE),
@@ -58,9 +79,19 @@ void drawFinish(sf::RenderWindow& window, int col, int row) {
     ));
     // square.setFillColor(sf::Color(50,200,50,150));    // translucent green  
     square.setOutlineColor(sf::Color::Red);  
-    square.setOutlineThickness(2.f);  
-    window.draw(square);  
-    std::cout << "Finish line drawn at (" << col << ", " << row << ")\n";
+    square.setOutlineThickness(1.f);  
+    window.draw(square); 
+    window.draw(sprite); 
+    // trying to put a imagem in the finish line
+    // sf::Texture texture;
+    // if (!texture.loadFromFile("imagen/finish_line.png")) {
+    //     std::cerr << "Error loading texture\n";
+    //     return;
+    // }
+    // sf::Sprite sprite(texture);
+    // sprite.setPosition(col * NODE_SIZE, row * NODE_SIZE);
+
+    // std::cout << "Finish line drawn at (" << col << ", " << row << ")\n";
 }
 /* ------------------------------------------------------------------------- */
 /* addWalls                                                                  */

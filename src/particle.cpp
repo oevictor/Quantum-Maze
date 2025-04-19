@@ -18,10 +18,115 @@
 // =============================================================================
 
 #include "../include/particle.hpp"
-#include "../include/mazeHelper.h"       // GRID_* constants & Node helpers
+#include "../include/mazeHelper.hpp"       // GRID_* constants & Node helpers
 #include <SFML/Graphics.hpp>
 #include <algorithm>           // std::copy (used in QuantumParticle::evolve)
 #include <iostream>
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PlayerParticle — methods aging it just a copy of classical particle 
+// ─────────────────────────────────────────────────────────────────────────────
+
+void PlayerParticle::draw(sf::RenderWindow& window) const
+{
+    sf::CircleShape shape(NODE_SIZE * 0.3f);
+    shape.setFillColor(color);
+    shape.setPosition(position);   // position already holds an sf::Vector2f
+    window.draw(shape);
+}
+
+/*Function to determinates if is possible to the classical is in the ritgh place*/
+
+
+void PlayerParticle::update(float dt, Node nodeList[]){
+
+    
+    // 1) integrate acceleration → velocity
+    velocity += acceleration * dt;
+    
+
+    // 2) propose new continuous position
+    sf::Vector2f nextPos = position + velocity * dt;
+
+    // 3) figure out which cell we’re in, before and after
+    int oldCol = static_cast<int>(position.x / NODE_SIZE);
+    int oldRow = static_cast<int>(position.y / NODE_SIZE);
+    int newCol = static_cast<int>(nextPos.x  / NODE_SIZE);
+    int newRow = static_cast<int>(nextPos.y  / NODE_SIZE);
+
+    // 4) handle X­axis crossing
+    if (newCol != oldCol) {
+        // which wall would we cross?
+        int side = (newCol > oldCol) ? SIDE_RIGHT : SIDE_LEFT;
+        // if there’s a wall there, bounce and cancel the X move
+        if (nodeList[oldCol + oldRow*GRID_WIDTH].walls[side]) {
+            velocity.x = -velocity.x;
+            nextPos.x = position.x;
+        }
+    }
+
+    // 5) handle Y­axis crossing
+    if (newRow != oldRow) {
+        int side = (newRow > oldRow) ? SIDE_DOWN : SIDE_TOP;
+        if (nodeList[oldCol + oldRow*GRID_WIDTH].walls[side]) {
+            velocity.y = -velocity.y;
+            nextPos.y = position.y;
+        }
+    }
+
+    // 6) commit the (possibly corrected) position
+    position = nextPos;
+}
+
+/**
+ * @brief Sets the particle's position to a new cell, checking for walls.
+ *
+ * @param newCol  New column index in the grid.
+ * @param newRow  New row index in the grid.
+ * @param nodeList  Flat array of Node objects representing the maze layout.
+ */
+void PlayerParticle::setPosition(int newCol,
+    int newRow,
+    Node nodeList[])
+{
+    // 1) Bounds check
+    if (!indexIsValid(newCol, newRow)) {
+    std::cout << "Invalid cell (" 
+    << newCol << "," << newRow << ")\n";
+    return;
+    }
+
+    // 2) Which side?
+    int oldIdx = col + row * GRID_WIDTH;
+    int side = -1;
+    if      (newCol == col + 1 && newRow == row)      side = SIDE_RIGHT;
+    else if (newCol == col - 1 && newRow == row)      side = SIDE_LEFT;
+    else if (newRow == row + 1 && newCol == col)      side = SIDE_DOWN;
+    else if (newRow == row - 1 && newCol == col)      side = SIDE_TOP;
+
+    // 3) Blocked by wall?  Bounce
+    if (side >= 0 && nodeList[oldIdx].walls[side]) {
+    if (side == SIDE_LEFT || side == SIDE_RIGHT)
+    velocity.x = -velocity.x;
+    else
+    velocity.y = -velocity.y;
+    return;
+    }
+
+    // 4) Not a neighbor?  Ignore
+    if (side < 0) {
+    return;
+    }
+
+    // 5) Commit the move
+    col = newCol;
+    row = newRow;
+    position.x = col * NODE_SIZE;
+    position.y = row * NODE_SIZE;
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ClassicalParticle — methods
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,12 +155,15 @@ void ClassicalParticle::draw(sf::RenderWindow& window) const
     shape.setPosition(position);   // position already holds an sf::Vector2f
     window.draw(shape);
 }
+
+
 /*Function to determinates if is possible to the classical is in the ritgh place*/
 
 void ClassicalParticle::update(float dt, Node nodeList[])
 {
     // 1) integrate acceleration → velocity
     velocity += acceleration * dt;
+    
 
     // 2) propose new continuous position
     sf::Vector2f nextPos = position + velocity * dt;

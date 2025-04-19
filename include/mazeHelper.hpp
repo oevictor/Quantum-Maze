@@ -41,7 +41,7 @@ struct Wall {
 
 /// Draws the finish line at the specified cell
 /// @param window SFML render window
-/// @param col Column of the finish line
+/// @param col Column ofs the finish line
 /// @param row Row of the finish line
 void drawFinish(sf::RenderWindow& window, int col, int row);
 /// Adds walls of a specific cell to the wall list
