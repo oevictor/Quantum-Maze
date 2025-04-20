@@ -62,7 +62,7 @@ int main()
         std::cerr << "Failed to load music\n";
     }
 
-    // music.play(); to ounvido cartola agr
+    music.play(); //to ounvido cartola agr
     auto desktopMode = sf::VideoMode::getDesktopMode();
     sf::Vector2u desktopSize = desktopMode.size;  
     sf::Vector2u winSize = window.getSize();
@@ -192,9 +192,6 @@ int main()
                 }
             }
 
-            
-            
-            // }
 
           // toggle behaviour when SPACE *goes down* (no key repeat)
           if (auto key = event->getIf<sf::Event::KeyPressed>())
@@ -226,14 +223,10 @@ int main()
                 cur_row = ni / GRID_WIDTH;
                 cur_col = ni % GRID_WIDTH;
                 addWalls(wallVec, nodeList, cur_col, cur_row);
-                //adding the finishi line
-                // drawFinish(window, FINISH_COL, FINISH_ROW);
+
 
 
             }
-
-            // // Suppose newCol/newRow is your target cell:
-            // classical.setPosition(cur_col, cur_row, nodeList);
 
 
             wallVec.erase(wallVec.begin() + idx);
@@ -243,7 +236,6 @@ int main()
             mazeReady = true;
             std::cout << "Maze generation complete.\n";
             classical.setPosition(cur_col, cur_row, nodeList);
-            // drawFinish(window, FINISH_COL, FINISH_ROW);
         }
 
 
@@ -288,16 +280,44 @@ int main()
                 
                 player.setPosition(player.col, player.row, nodeList);
 
-                //It was only a debuggber,now I need to put some pause butum
-                // std::cout << "Player particle position: (" << player.col << ", " << player.row << ")\n";
 
                 if (player.col == FINISH_COL && player.row == FINISH_ROW) {
                     // player reached finish → you win
-
                     //changinf for another window saying you win
-                    sf::RenderWindow win(sf::VideoMode({400, 200}), "You Win!");
-                    std::cout << "YOU WIN!\n";
+                    // sf::RenderWindow win(sf::VideoMode({400, 200}), "You Win!");
+                    // pause = true;
+                    // std::cout << "YOU WIN!\n";
                     // window.close();  
+                    // Stop the game and display the "You Win" screen
+                    // Stop the game and display the "You Win" screen
+                    pause = true; // Pause the game
+                    sf::Texture winTexture;
+                    if (!winTexture.loadFromFile("imagen/skeleton dude.jpg")) { // Replace with your image path
+                        std::cerr << "Failed to load win image\n";
+                    } else {
+
+                        sf::Sprite winSprite(winTexture);
+                        while (pause && window.isOpen()) {
+                            if (const auto event = window.pollEvent()) { // Use std::optional<sf::Event>
+                                if (event->is<sf::Event::Closed>()) {    // Check if the event is a window close request
+                                    window.close();
+                                }
+                                if (event->is<sf::Event::KeyPressed>()) {
+                                    if (event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::R) {
+                                        // Reset the game when 'R' is pressed
+                                        resetGame(nodeList, wallVec, player, bots, mazeReady, cur_col, cur_row);
+                                        pause = false; // Resume the game
+                                    }
+                                }
+                            }
+                        
+                            window.clear(sf::Color::Black);
+                        
+                            // Display the "You Win" image
+                            window.draw(winSprite);
+                            window.display();
+                        }
+                    }
                 }
 
                 bots[0]->col = static_cast<int>(classical.position.x / NODE_SIZE);
@@ -313,16 +333,35 @@ int main()
                 // after you update your bots:
                 for (auto& bot : bots) {
                     if (bot->col == FINISH_COL && bot->row == FINISH_ROW) {
-                        // a bot got there first → you lose
-                        sf::RenderWindow win(sf::VideoMode({400, 200}), "You lose!");
-
-                        std::cout << "YOU LOSE!\n";
-
-                        // window.close();
+                        pause = true; // Pause the game
+                        sf::Texture loseTexture;
+                        if (!loseTexture.loadFromFile("imagen/trem.jpg")) { // Replace with your image path
+                            std::cerr << "Failed to load lose image\n";
+                        } else {
+                            sf::Sprite loseSprite(loseTexture);
+                            while (pause && window.isOpen()) {
+                                if (const auto event = window.pollEvent()) { // Use std::optional<sf::Event>
+                                    if (event->is<sf::Event::Closed>()) {    // Check if the event is a window close request
+                                        window.close();
+                                    }
+                                    if (event->is<sf::Event::KeyPressed>()) {
+                                        if (event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::R) {
+                                            // Reset the game when 'R' is pressed
+                                            resetGame(nodeList, wallVec, player, bots, mazeReady, cur_col, cur_row);
+                                            pause = false; // Resume the game
+                                        }
+                                    }
+                                }
+                
+                                window.clear(sf::Color::Black);
+                
+                                // Display the "Lose" image
+                                window.draw(loseSprite);
+                                window.display();
+                            }
+                        }
                     }
                 }
-
-
             }
 
 
@@ -338,7 +377,7 @@ int main()
         }
         // ——— Rendering ———————————————————————————————————————
         window.clear(sf::Color::Black);
-        drawMaze(window, nodeList, 1, 1); // -1 disables path highlighting
+        drawMaze(window, nodeList, -1, 1); // -1 disables path highlighting
         
         if(mazeReady){
 
@@ -354,9 +393,20 @@ int main()
 
             quantum.draw(window);
         }
-        
-        
+        if(pause){
+            //insert a imagem of pause on all the screen
+            sf::Texture pauseTexture;
+            if (!pauseTexture.loadFromFile("imagen/boca_boca.jpg")) {
+                std::cerr << "Failed to load pause image\n"; 
+            }else{
+                sf::Sprite pauseSprite(pauseTexture);
+                // pauseSprite.setPosition(0.f, 0.f); // Set position to top-left corner
+                window.draw(pauseSprite);
+            }
+        }
 
+        
+        
         window.display();
 
     }

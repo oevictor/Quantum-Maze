@@ -1,15 +1,13 @@
-// #include <iostream>
 #include "../include/mazeHelper.hpp"
 // #include "../include/particle.hpp"   // ClassicalParticle, QuantumParticle
 #include "../include/gamesettings.hpp" // Game settings header
-// Move the resetGame function outside of main()
+#include <SFML/Graphics.hpp> // For graphics rendering
 
 
 void resetGame(Node* nodeList, std::vector<Wall>& wallVec, PlayerParticle& player,
                 std::vector<ClassicalParticle*>& bots, bool& mazeReady, int& cur_col, int& cur_row) {
         // Reset maze
         std::fill(nodeList, nodeList + (GRID_WIDTH * GRID_HEIGHT), Node{}); // Clear all nodes
-        // initializeGrid(nodeList); // Reinitialize the grid
         wallVec.clear();          // Clear walls
         cur_col = std::rand() % GRID_WIDTH; // Random starting cell
         cur_row = std::rand() % GRID_HEIGHT;
