@@ -106,49 +106,25 @@ int main()
 
     ClassicalParticle classical;
 
-    // ClassicalParticle classical{
-    //     sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-    //     sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-    //     sf::Vector2f(0.f, 0.f)    // acceleration
-    // };
-
-    // ClassicalParticle classical2{
-    //     sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-    //     sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-    //     sf::Vector2f(0.f, 0.f)    // acceleration
-    // };
-
-    // ClassicalParticle classical3{
-    //     sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-    //     sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-    //     sf::Vector2f(0.f, 0.f)    // acceleration
-    // };
-
-    // ClassicalParticle classical4{
-    //     sf::Vector2f(-5.f, -5.f),   // initial position (top‑left corner)
-    //     sf::Vector2f(40.f, 10.f),   //(x,y) velocity (5 px/s to the right)
-    //     sf::Vector2f(1.f, 0.f)    // acceleration
-
-    // };
-
-
-
-    // classical.color = sf::Color::Black; // default colour
-    // classical2.color = sf::Color::Red; // default colour
-    // classical3.color = sf::Color::Blue; // default colour
-    // classical4.color = sf::Color::Yellow; // default colour
 
     // // building a bot vector
     std::vector<ClassicalParticle*> bots={};
 
-    generateBots(bots, 40, nodeList);
+    generateBots(bots, 100, nodeList);
 
 
     // // Place it at the randomly chosen start cell (cur_col, cur_row):
     // classical.setPosition(cur_col, cur_row, nodeList);
 
+    // QuantumParticle quantum;
+    // quantum.initialize(nodeList);
     QuantumParticle quantum;
-    quantum.initialize();
+    quantum.initialize(nodeList);
+
+    std::vector<QuantumParticle*> qbots;
+    QuantumParticle::addQuantumParticle(qbots, 100, nodeList);
+    
+
     //seting the collapese to make it stops only when the space key is pressed
     bool autoCollapse = true;
     sf::Clock clock; // used to compute per‑frame Δt
@@ -248,7 +224,7 @@ int main()
             if(mazeReady)
             {
 
-                const float speed = 50.f;  // pixels per second
+                const float speed =75.f;  // pixels per second
 
                 sf::Vector2f dir{0.f, 0.f};
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dir.y -= 1.f;
@@ -289,6 +265,7 @@ int main()
                     } else {
 
                         sf::Sprite winSprite(winTexture);
+                        winSprite.setPosition({GRID_WIDTH/2, GRID_HEIGHT/2}); // Set position to top-left corner
                         while (pause && window.isOpen()) {
                             if (const auto event = window.pollEvent()) { // Use std::optional<sf::Event>
                                 if (event->is<sf::Event::Closed>()) {    // Check if the event is a window close request
@@ -323,13 +300,15 @@ int main()
 
                 // after you update your bots:
                 for (auto& bot : bots) {
-                    if (bot->col == FINISH_COL && bot->row == FINISH_ROW) {
+                    if (bot->col == FINISH_COL && bot->row == FINISH_ROW || quantum.col == FINISH_COL && quantum.row == FINISH_ROW) {
                         pause = true; // Pause the game
                         sf::Texture loseTexture;
                         if (!loseTexture.loadFromFile("imagen/trem.jpg")) { // Replace with your image path
                             std::cerr << "Failed to load lose image\n";
                         } else {
                             sf::Sprite loseSprite(loseTexture);
+                            loseSprite.setPosition( {GRID_WIDTH/2, GRID_HEIGHT/2} );
+                            loseSprite.setScale ({GRID_WIDTH/4, GRID_HEIGHT/4}); // Adjust the scale as needed
                             std::cout << "YOU LOSE!\n";
                             while (pause && window.isOpen()) {
                                 if (const auto event = window.pollEvent()) { // Use std::optional<sf::Event>
@@ -381,13 +360,6 @@ int main()
             for (auto& bot : bots) {
                 bot->draw(window);
             }
-
-
-
-            // classical.draw(window);
-            // classical2.draw(window);
-            // classical3.draw(window);
-            // classical4.draw(window);
 
 
             quantum.draw(window);

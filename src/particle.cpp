@@ -245,8 +245,36 @@ void ClassicalParticle::setPosition(int newCol,
 /**
  * @brief Resets the probability array to a uniform distribution.
  */
-void QuantumParticle::initialize() //the probability array is initialized to a uniform distribution
+
+//define the number of particles in the maze
+// std::vector<QuantumParticle*> particles; //vector to store the particles
+
+
+void QuantumParticle::addQuantumParticle(std::vector<QuantumParticle*>& out, int numParticles, Node* nodeList) {
+    for (int i = 0; i < numParticles; ++i) {
+        // QuantumParticle* particle = new QuantumParticle; //creating the bot 
+        auto*p =new QuantumParticle; //creating the bot
+        // particle->position = sf::Vector2f(0.f, 0.f); // Initial position
+        // particle->col = std::rand() % GRID_WIDTH; // Random column
+        // particle->row = std::rand() % GRID_HEIGHT; // Random row
+        // particle->color = sf::Color(std::rand() , std::rand() , std::rand()); // Default color
+        // particle->initialize(nodeList); // Initialize the probability array
+        // particles.push_back(particle);
+
+        p->col = std::rand() % GRID_WIDTH; // Random column
+        p->row = std::rand() % GRID_HEIGHT; // Random row
+        p->color = sf::Color(std::rand() , std::rand() , std::rand()); // Default color
+        p->initialize(nodeList); // Initialize the probability array
+        out.push_back(p); // Add the particle to the vector
+
+
+    }
+    std::cout << "Quantum particles generated "<<numParticles << "!\n";
+}
+void QuantumParticle::initialize(Node* nodeList) //the probability array is initialized to a uniform distribution
 {
+    // addQuantumParticle(particles, 100, nodeList);
+    // std::cout << "Quantum particles generated "<<numParticles << "!\n";
     float uniform = 1.0f / (GRID_WIDTH * GRID_HEIGHT);
     for (int i = 0; i < GRID_WIDTH * GRID_HEIGHT; ++i){
         probability[i] = uniform;

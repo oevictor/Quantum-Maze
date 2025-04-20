@@ -115,7 +115,7 @@ struct QuantumParticle{
     int         col = 0, row = 0;                             //!< Cell coordinates once collapsed.
 
     /** @brief Initialise with a uniform distribution. */
-    void initialize();
+    void initialize(Node* nodeList);
 
     /**
      * @brief Perform one evolution step of the quantum walk.
@@ -140,5 +140,10 @@ struct QuantumParticle{
      * @param window  SFML render target.
      */
     void draw(sf::RenderWindow& window) const;
+    static void addQuantumParticle(std::vector<QuantumParticle*>& out,
+                                    int numParticles,
+                                    Node*);
+
+    // void addQuantumParticle(std::vector<QuantumParticle*>& particles, int numParticles, Node* nodeList) {}
 
 };
