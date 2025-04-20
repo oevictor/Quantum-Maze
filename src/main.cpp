@@ -86,10 +86,10 @@ int main()
     
     // make it random the finish line
     std::srand(static_cast<unsigned>(std::time(nullptr)));
-    // FINISH_COL = std::rand() % GRID_WIDTH;
-    // FINISH_ROW = std::rand() % GRID_HEIGHT;
-    FINISH_COL = 5;
-    FINISH_ROW = 5;
+    FINISH_COL = std::rand() % GRID_WIDTH;
+    FINISH_ROW = std::rand() % GRID_HEIGHT;
+    // FINISH_COL = 5;
+    // FINISH_ROW = 5;
 
     // initialize frontier walls
     std::vector<Wall> wallVec;
@@ -104,47 +104,45 @@ int main()
     // Particle instantiation
     // ---------------------------------------------------------------------
 
-    // ClassicalParticle classical;
+    ClassicalParticle classical;
 
-    ClassicalParticle classical{
-        sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-        sf::Vector2f(0.f, 0.f)    // acceleration
-    };
+    // ClassicalParticle classical{
+    //     sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
+    //     sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+    //     sf::Vector2f(0.f, 0.f)    // acceleration
+    // };
 
-    ClassicalParticle classical2{
-        sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-        sf::Vector2f(0.f, 0.f)    // acceleration
-    };
+    // ClassicalParticle classical2{
+    //     sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
+    //     sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+    //     sf::Vector2f(0.f, 0.f)    // acceleration
+    // };
 
-    ClassicalParticle classical3{
-        sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
-        sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-        sf::Vector2f(0.f, 0.f)    // acceleration
-    };
+    // ClassicalParticle classical3{
+    //     sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
+    //     sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
+    //     sf::Vector2f(0.f, 0.f)    // acceleration
+    // };
 
-    ClassicalParticle classical4{
-        sf::Vector2f(-5.f, -5.f),   // initial position (top‑left corner)
-        sf::Vector2f(40.f, 10.f),   //(x,y) velocity (5 px/s to the right)
-        sf::Vector2f(1.f, 0.f)    // acceleration
+    // ClassicalParticle classical4{
+    //     sf::Vector2f(-5.f, -5.f),   // initial position (top‑left corner)
+    //     sf::Vector2f(40.f, 10.f),   //(x,y) velocity (5 px/s to the right)
+    //     sf::Vector2f(1.f, 0.f)    // acceleration
 
-    };
+    // };
 
 
 
-    classical.color = sf::Color::Black; // default colour
-    classical2.color = sf::Color::Red; // default colour
-    classical3.color = sf::Color::Blue; // default colour
-    classical4.color = sf::Color::Yellow; // default colour
+    // classical.color = sf::Color::Black; // default colour
+    // classical2.color = sf::Color::Red; // default colour
+    // classical3.color = sf::Color::Blue; // default colour
+    // classical4.color = sf::Color::Yellow; // default colour
 
-    // building a bot vector
-    std::vector<ClassicalParticle*> bots={
-        &classical,
-        &classical2,
-        &classical3,
-        &classical4
-    };
+    // // building a bot vector
+    std::vector<ClassicalParticle*> bots={};
+
+    generateBots(bots, 40, nodeList);
+
 
     // // Place it at the randomly chosen start cell (cur_col, cur_row):
     // classical.setPosition(cur_col, cur_row, nodeList);
@@ -234,7 +232,7 @@ int main()
         else if (!mazeReady) {
             // Maze generation is complete
             mazeReady = true;
-            std::cout << "Maze generation complete.\n";
+            // std::cout << "Maze generation complete.\n";
             classical.setPosition(cur_col, cur_row, nodeList);
         }
 
@@ -269,10 +267,11 @@ int main()
 
                 // now integrate & collide:
                 player.update(dt, nodeList);
-                classical.update(dt, nodeList); //s I must imporve the bots
-                classical2.update(dt, nodeList);
-                classical3.update(dt, nodeList);
-                classical4.update(dt, nodeList);
+                // change the logic to suport the new version 
+
+                for (auto& bot : bots) {
+                    bot->update(dt, nodeList);
+                }
                 
                 //trying to set the postion so the particle is in the right place and computs
                 player.col = static_cast<int>(player.position.x / NODE_SIZE);
@@ -282,14 +281,7 @@ int main()
 
 
                 if (player.col == FINISH_COL && player.row == FINISH_ROW) {
-                    // player reached finish → you win
-                    //changinf for another window saying you win
-                    // sf::RenderWindow win(sf::VideoMode({400, 200}), "You Win!");
-                    // pause = true;
-                    // std::cout << "YOU WIN!\n";
-                    // window.close();  
-                    // Stop the game and display the "You Win" screen
-                    // Stop the game and display the "You Win" screen
+
                     pause = true; // Pause the game
                     sf::Texture winTexture;
                     if (!winTexture.loadFromFile("imagen/skeleton dude.jpg")) { // Replace with your image path
@@ -310,25 +302,24 @@ int main()
                                     }
                                 }
                             }
-                        
                             window.clear(sf::Color::Black);
                         
-                            // Display the "You Win" image
+                            // Display the  image
                             window.draw(winSprite);
                             window.display();
                         }
                     }
                 }
 
-                bots[0]->col = static_cast<int>(classical.position.x / NODE_SIZE);
-                bots[0]->row = static_cast<int>(classical.position.y / NODE_SIZE);
-                bots[1]->col = static_cast<int>(classical2.position.x / NODE_SIZE);
-                bots[1]->row = static_cast<int>(classical2.position.y / NODE_SIZE);
-                bots[2]->col = static_cast<int>(classical3.position.x / NODE_SIZE);
-                bots[2]->row = static_cast<int>(classical3.position.y / NODE_SIZE);
-                bots[3]->col = static_cast<int>(classical4.position.x / NODE_SIZE);
-                bots[3]->row = static_cast<int>(classical4.position.y / NODE_SIZE);
-                // std::cout << "Bot particle position: (" << bots[0]->col << ", " << bots[0]->row << ")\n";
+
+                // Ajusting the logic to the new version of the bots
+                for (auto& bot : bots) {
+                    bot->col = static_cast<int>(bot->position.x / NODE_SIZE);
+                    bot->row = static_cast<int>(bot->position.y / NODE_SIZE);
+                    bot->setPosition(bot->col, bot->row, nodeList);
+                }
+                // Check if any bot has reached the finish line
+
 
                 // after you update your bots:
                 for (auto& bot : bots) {
@@ -339,6 +330,7 @@ int main()
                             std::cerr << "Failed to load lose image\n";
                         } else {
                             sf::Sprite loseSprite(loseTexture);
+                            std::cout << "YOU LOSE!\n";
                             while (pause && window.isOpen()) {
                                 if (const auto event = window.pollEvent()) { // Use std::optional<sf::Event>
                                     if (event->is<sf::Event::Closed>()) {    // Check if the event is a window close request
@@ -355,7 +347,7 @@ int main()
                 
                                 window.clear(sf::Color::Black);
                 
-                                // Display the "Lose" image
+                                // Display the  image
                                 window.draw(loseSprite);
                                 window.display();
                             }
@@ -385,10 +377,17 @@ int main()
             
             
             player.draw(window);
-            classical.draw(window);
-            classical2.draw(window);
-            classical3.draw(window);
-            classical4.draw(window);
+
+            for (auto& bot : bots) {
+                bot->draw(window);
+            }
+
+
+
+            // classical.draw(window);
+            // classical2.draw(window);
+            // classical3.draw(window);
+            // classical4.draw(window);
 
 
             quantum.draw(window);
