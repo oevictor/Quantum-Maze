@@ -30,9 +30,11 @@
 
 void PlayerParticle::draw(sf::RenderWindow& window) const
 {
-    sf::CircleShape shape(NODE_SIZE * 0.3f);
+    const float r = NODE_SIZE * 0.2f;         // ball radius
+    sf::CircleShape shape(r);
     shape.setFillColor(color);
-    shape.setPosition(position);   // position already holds an sf::Vector2f
+    shape.setOrigin(sf::Vector2f{r, r});      // SFML 3: vector overload
+    shape.setPosition(position);              // position is the CENTER now
     window.draw(shape);
 }
 
@@ -40,42 +42,50 @@ void PlayerParticle::draw(sf::RenderWindow& window) const
 
 
 void PlayerParticle::update(float dt, Node nodeList[]){
-
-    
-    // 1) integrate acceleration → velocity
+    // integrate
     velocity += acceleration * dt;
-    
-
-    // 2) propose new continuous position
     sf::Vector2f nextPos = position + velocity * dt;
 
-    // 3) figure out which cell we’re in, before and after
-    int oldCol = static_cast<int>(position.x / NODE_SIZE);
-    int oldRow = static_cast<int>(position.y / NODE_SIZE);
-    int newCol = static_cast<int>(nextPos.x  / NODE_SIZE);
-    int newRow = static_cast<int>(nextPos.y  / NODE_SIZE);
+    // current cell of the CENTER
+    int col = static_cast<int>(position.x / NODE_SIZE);
+    int row = static_cast<int>(position.y / NODE_SIZE);
+    if (col < 0 || col >= GRID_WIDTH || row < 0 || row >= GRID_HEIGHT)
+        return;
 
-    // 4) handle X­axis crossing
-    if (newCol != oldCol) {
-        // which wall would we cross?
-        int side = (newCol > oldCol) ? SIDE_RIGHT : SIDE_LEFT;
-        // if there’s a wall there, bounce and cancel the X move
-        if (nodeList[oldCol + oldRow*GRID_WIDTH].walls[side]) {
-            velocity.x = -velocity.x;
-            nextPos.x = position.x;
+    const float r = NODE_SIZE * 0.2f; // same radius used to draw
+    const int idx = col + row * GRID_WIDTH;
+    const Node& n = nodeList[idx];
+
+    // X axis: clamp to the wall boundary using the radius
+    if (velocity.x > 0.f && n.walls[SIDE_RIGHT]) {
+        float maxX = (col + 1) * NODE_SIZE - r;   // inside face of right wall
+        if (nextPos.x > maxX) {
+            nextPos.x = maxX;
+            velocity.x = 0.f;
+        }
+    } else if (velocity.x < 0.f && n.walls[SIDE_LEFT]) {
+        float minX = col * NODE_SIZE + r;         // inside face of left wall
+        if (nextPos.x < minX) {
+            nextPos.x = minX;
+            velocity.x = 0.f;
         }
     }
 
-    // 5) handle Y­axis crossing
-    if (newRow != oldRow) {
-        int side = (newRow > oldRow) ? SIDE_DOWN : SIDE_TOP;
-        if (nodeList[oldCol + oldRow*GRID_WIDTH].walls[side]) {
-            velocity.y = -velocity.y;
-            nextPos.y = position.y;
+    // Y axis: clamp to the wall boundary using the radius
+    if (velocity.y > 0.f && n.walls[SIDE_DOWN]) {
+        float maxY = (row + 1) * NODE_SIZE - r;   // inside face of bottom wall
+        if (nextPos.y > maxY) {
+            nextPos.y = maxY;
+            velocity.y = 0.f;
+        }
+    } else if (velocity.y < 0.f && n.walls[SIDE_TOP]) {
+        float minY = row * NODE_SIZE + r;         // inside face of top wall
+        if (nextPos.y < minY) {
+            nextPos.y = minY;
+            velocity.y = 0.f;
         }
     }
 
-    // 6) commit the (possibly corrected) position
     position = nextPos;
 }
 
@@ -150,9 +160,15 @@ void PlayerParticle::setPosition(int newCol,
  */
 void ClassicalParticle::draw(sf::RenderWindow& window) const
 {
-    sf::CircleShape shape(NODE_SIZE * 0.3f);
+    // sf::CircleShape shape(NODE_SIZE * 0.2f);
+    // shape.setFillColor(color);
+    // shape.setPosition(position);   // position already holds an sf::Vector2f
+    // window.draw(shape);
+    const float r = NODE_SIZE * 0.2f;         // ball radius
+    sf::CircleShape shape(r);
     shape.setFillColor(color);
-    shape.setPosition(position);   // position already holds an sf::Vector2f
+    shape.setOrigin(sf::Vector2f{r, r});      // SFML 3: vector overload
+    shape.setPosition(position);              // position is the CENTER now
     window.draw(shape);
 }
 
@@ -231,10 +247,14 @@ void ClassicalParticle::setPosition(int newCol,
     }
 
     // 5) Commit the move
+    // col = newCol;
+    // row = newRow;
+    // position.x = col * NODE_SIZE;
+    // position.y = row * NODE_SIZE;
     col = newCol;
     row = newRow;
-    position.x = col * NODE_SIZE;
-    position.y = row * NODE_SIZE;
+    position.x = (col + 0.5f) * NODE_SIZE; // center of the cell
+    position.y = (row + 0.5f) * NODE_SIZE; // center of the cell
 }
 
 

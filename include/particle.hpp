@@ -23,30 +23,17 @@
 //palyer particle it just a copy of classical particle but with a different color and name
 
 struct PlayerParticle{
-    
-    sf::Vector2f position;     //!< Current position in pixels.
-    sf::Vector2f velocity;     //!< Velocity in pixels · s⁻¹.
-    sf::Vector2f acceleration; //!< Acceleration in pixels · s⁻².
-    sf::Color    color = sf::Color::Green; //!< Fill colour (default: green).
+    sf::Vector2f position;     //!< Center position in pixels.
+    sf::Vector2f velocity;
+    sf::Vector2f acceleration;
+    sf::Color    color = sf::Color::Green;
+    int col=0, row=0;
 
+    // Radius used for drawing and collision (20% of cell size)
+    inline float radius() const { return NODE_SIZE * 0.2f; }
 
-    //Putting somethig so it now where it can be or not 
-    int col=0, row=0; //position of the particle in the grid
-
-    /*void to determinaed if the particle is in the right position*/
-    void setPosition(int newCol, int newRow,Node nodeList[]); //Cecking to see where the particle is
-
-    /**
-     * @brief Integrate one time‑step.
-     * @param dt  Elapsed time in **seconds**.
-     */
-    // void update(float dt);
-    void update (float dt, Node nodeList[]); //update the position of the particle
-
-    /**
-     * @brief Draw the particle on the provided SFML render target.
-     * @param window  Render target.
-     */
+    void setPosition(int newCol, int newRow, Node nodeList[]);
+    void update(float dt, Node nodeList[]);
     void draw(sf::RenderWindow& window) const;
 };
 
@@ -69,30 +56,17 @@ struct PlayerParticle{
  * `position`.
  */
 struct ClassicalParticle{
+    sf::Vector2f position;     //!< Center position in pixels.
+    sf::Vector2f velocity;
+    sf::Vector2f acceleration;
+    sf::Color    color = sf::Color::Green;
+    int col=0, row=0;
 
-    sf::Vector2f position;     //!< Current position in pixels.
-    sf::Vector2f velocity;     //!< Velocity in pixels · s⁻¹.
-    sf::Vector2f acceleration; //!< Acceleration in pixels · s⁻².
-    sf::Color    color = sf::Color::Green; //!< Fill colour (default: green).
+    // Radius used for drawing and collision (20% of cell size)
+    inline float radius() const { return NODE_SIZE * 0.2f; }
 
-
-    //Putting somethig so it now where it can be or not 
-    int col=0, row=0; //position of the particle in the grid
-
-    /*void to determinaed if the particle is in the right position*/
-    void setPosition(int newCol, int newRow,Node nodeList[]); //Cecking to see where the particle is
-
-    /**
-     * @brief Integrate one time‑step.
-     * @param dt  Elapsed time in **seconds**.
-     */
-    // void update(float dt);
-    void update (float dt, Node nodeList[]); //update the position of the particle
-
-    /**
-     * @brief Draw the particle on the provided SFML render target.
-     * @param window  Render target.
-     */
+    void setPosition(int newCol, int newRow, Node nodeList[]);
+    void update(float dt, Node nodeList[]);
     void draw(sf::RenderWindow& window) const;
 };
 

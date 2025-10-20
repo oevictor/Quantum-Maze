@@ -24,6 +24,8 @@
 #include <ctime>
 #include <stack>
 #include <time.h>
+#include <random>                 // add this
+#include <algorithm>            // add this for shuffle/remove_if/min
 #include "../include/mazeHelper.hpp"              // grid constants, Node, drawMaze()
 #include <SFML/Graphics.hpp>
 #include "../include/particle.hpp"   // ClassicalParticle, QuantumParticle
@@ -110,8 +112,41 @@ int main()
     // // building a bot vector
     std::vector<ClassicalParticle*> bots={};
 
-    generateBots(bots, 100, nodeList);
+    generateBots(bots, 10, nodeList);
 
+    // Place each bot on a different border cell (avoid the finish cell)
+    {
+        std::vector<std::pair<int,int>> border;
+        border.reserve(2 * (GRID_WIDTH + GRID_HEIGHT) - 4); // fix: reserve, not reserv
+
+        // Top and bottom rows
+        for (int c = 0; c < GRID_WIDTH; ++c) {
+            border.emplace_back(c, 0);
+            if (GRID_HEIGHT > 1) border.emplace_back(c, GRID_HEIGHT - 1);
+        }
+        // Left and right columns (skip corners)
+        for (int r = 1; r < GRID_HEIGHT - 1; ++r) {
+            border.emplace_back(0, r);
+            if (GRID_WIDTH > 1) border.emplace_back(GRID_WIDTH - 1, r);
+        }
+
+        // Remove finish if it’s on the border
+        border.erase(std::remove_if(border.begin(), border.end(),
+            [](const std::pair<int,int>& p){
+                return p.first == FINISH_COL && p.second == FINISH_ROW;
+            }),
+            border.end());
+
+        // Shuffle and assign unique border cells to bots
+        std::mt19937 rng(static_cast<unsigned>(std::time(nullptr)));
+        std::shuffle(border.begin(), border.end(), rng);
+
+        const size_t count = std::min(bots.size(), border.size());
+        for (size_t i = 0; i < count; ++i) {
+            const auto [c, r] = border[i];
+            bots[i]->setPosition(c, r, nodeList);
+        }
+    }
 
     // // Place it at the randomly chosen start cell (cur_col, cur_row):
     // classical.setPosition(cur_col, cur_row, nodeList);
@@ -133,7 +168,7 @@ int main()
     PlayerParticle player{
         sf::Vector2f(0.f, 0.f),   // initial position (top‑left corner)
         sf::Vector2f(4.f, 1.f),   //(x,y) velocity (5 px/s to the right)
-        sf::Vector2f(0.f, 0.f)    // acceleration
+        sf::Vector2f(100.f, 100.f)    // acceleration
     };
     player.color = sf::Color::Green; // default colour
 
@@ -209,7 +244,16 @@ int main()
             // Maze generation is complete
             mazeReady = true;
             // std::cout << "Maze generation complete.\n";
-            classical.setPosition(cur_col, cur_row, nodeList);
+            // classical.setPosition(cur_col, cur_row, nodeList);
+            ClassicalParticle classical{};
+        {
+            int c,r;
+            do {
+                c = std::rand() % GRID_WIDTH;
+                r = std::rand() % GRID_HEIGHT;
+            } while (c == FINISH_COL && r == FINISH_ROW);
+            classical.setPosition(c, r, nodeList);
+        }
         }
 
 
@@ -224,14 +268,21 @@ int main()
             if(mazeReady)
             {
 
-                const float speed =75.f;  // pixels per second
+                const float speed =100.f;  // pixels per second
 
                 sf::Vector2f dir{0.f, 0.f};
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) dir.y -= 1.f;
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) dir.y += 1.f;
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) dir.x -= 1.f;
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) dir.x += 1.f;
-
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || 
+                sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+                dir.y -= 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || 
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+                    dir.y += 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || 
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+                    dir.x -= 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || 
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+                    dir.x += 1.f;
                 // normalize so diagonal isn’t faster:
                 if (dir.x != 0.f || dir.y != 0.f) {
                     float len = std::sqrt(dir.x*dir.x + dir.y*dir.y);
